@@ -1,12 +1,12 @@
 import { ProjectForm } from "@/common.types";
-import { createProjectMutation, createUserMutation, getUserQuery } from "@/graphql";
+import { createProjectMutation, createUserMutation, getUserQuery, projectsQuery } from "@/graphql";
 import { GraphQLClient } from "graphql-request";
 
 const isProduction = process.env.NODE_ENV === "production";
 const apiUrl = isProduction ? process.env.NEXT_PUBLIC_GRAFBASE_API_URL || '' : 'http://127.0.0.1:4000/graphql';
 const apiKey = isProduction ? process.env.NEXT_PUBLIC_GRAFBASE_API_KEY || '' : 'letmein';
-//const serverUrl = isProduction ? process.env.NEXT_PUBLIC_SERVER_URL : 'http://localhost:3000';
-const serverUrl = 'http://localhost:3000';
+const serverUrl = isProduction ? process.env.NEXT_PUBLIC_SERVER_URL : 'http://localhost:3000';
+//const serverUrl = 'http://localhost:3000';
 
 const client = new GraphQLClient(apiUrl)
 
@@ -76,5 +76,11 @@ export const createNewProject = async (form: ProjectForm, creatorId: string, tok
 
         return makeGraphQLRequest(createProjectMutation, variables)
     }
+}
+
+export const fetchAllProjects = async (category?: string, endcursor?: string) => {
+    client.setHeader('x-api-key', apiKey);
+
+    return makeGraphQLRequest(projectsQuery, { category, endcursor });
 }
 
