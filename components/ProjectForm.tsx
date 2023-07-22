@@ -6,6 +6,8 @@ import FormField from "./FormField"
 import { categoryFilters } from "@/constants"
 import CustomMenu from "./CustomMenu"
 import Button from "./Button"
+import { createNewProject, fetchToken } from "@/lib/actions"
+import { useRouter } from "next/navigation"
 
 type Props = {
     type: string,
@@ -15,9 +17,32 @@ type Props = {
 
 const ProjectForm = ({ type, session }: Props) => {
 
-    const handleFormSubmit = (e: React.FormEvent) => {}
+    const router = useRouter();
+
+    const handleFormSubmit = async (e: React.FormEvent) => {
+        //debugger;
+        e.preventDefault();
+
+        setIsSubmitting(true);
+
+        const { token } = await fetchToken();
+
+        try {
+            if (type === "create") {
+                //create project
+                await createNewProject(form, session?.user?.id, token);
+
+                router.push('/');
+            }
+        } catch (error) {
+            console.log(error);
+        } finally {
+            setIsSubmitting(false);
+        }
+    }
 
     const handleChangeImage = (e: ChangeEvent<HTMLInputElement>) => {
+        //debugger;
         e.preventDefault();
 
         const file = e.target.files?.[0];
@@ -31,7 +56,13 @@ const ProjectForm = ({ type, session }: Props) => {
         const reader = new FileReader();
 
         reader.readAsDataURL(file);
-    }
+
+        reader.onload = () => {
+            const result = reader.result as string;
+
+            handleStateChange('image',result);
+        }
+    };
 
     const handleStateChange = (fieldname: string, value: string) => {
         setform((prevState) => ({
@@ -100,7 +131,7 @@ const ProjectForm = ({ type, session }: Props) => {
             type="url"
             title = "GitHub URL" 
             state = {form.githubUrl}
-            placeholder = "https://github.com/username"
+            placeholder = "https://github.com/username/repo"
             setState = {(value) => handleStateChange('githubUrl', value)} 
         />
         
